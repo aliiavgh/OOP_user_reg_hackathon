@@ -1,4 +1,5 @@
 import json 
+from typing import List
 
 
 def validate_password(password): 
@@ -15,12 +16,19 @@ class RegisterMixin:
     def register(self, name: str, password:str) -> None: 
         if name in [user['name'] for user in self.data]:
             raise Exception('Такой юзер уже существует!')
+
+        def __find_max_id(data: List[dict]) -> int: 
+            if data:
+                ids = [i['id'] for i in data]
+                return max(ids) + 1
+            else: 
+                return 0
         
-        max_id = max([user['id'] for user in self.data])
-        self.data.append({'id': max_id + 1, 'name':name, 'password': validate_password(password)})
+        self.data.append({'id': __find_max_id(self.data), 'name':name, 'password': validate_password(password)})
         
         json.dump(self.data, open('user.json', 'w'))
         print('Successfully registered')
+
 
 
 class LoginMixin:
@@ -86,10 +94,21 @@ class CheckOwnerMixin:
 
 
 class User(RegisterMixin, LoginMixin, ChangePasswordMixin, ChangeUserNameMixin): 
-    def __init__(self, filename):
-        self.data = json.load(open(filename))
+    def __init__(self):
+        def __create_file() -> None: 
+            with open('user.json', 'x') as file: 
+                json.dump([], file)
+
+        try:
+            __create_file()
+        except FileExistsError:
+                # print('FileExistsError')
+                pass
+        self.data = json.load(open('user.json'))
+        
 
 class Post(CheckOwnerMixin):
+    data = json.load(open('user.json'))
     def __init__(self, title, description, price, quantity, owner):
         self.title = title 
         self.description = description
@@ -107,7 +126,7 @@ class Post(CheckOwnerMixin):
         print('Пост успешно создан: ', new_post)
 
 
-# emma = User('user.json')
+emma = User()
 # emma.register('Emma', 'opq2555gggg34')
 # emma.login('Emma', 'opq2555gggg34')
 # emma.change_password('Emma', 'opq2555gggg34', 'neverland01')
@@ -118,7 +137,7 @@ class Post(CheckOwnerMixin):
 # emma_p.post()
 
 
-# rick = User('user.json')
+rick = User()
 # rick.register('Rick', 'galaxy234500')
 # rick.login('Rick', 'galaxy234500')
 # rick.change_password('Rick', 'galaxy234500', 'galaxy6744600')
@@ -129,7 +148,7 @@ class Post(CheckOwnerMixin):
 # rick_p.post()
 
 
-# yoongi = User('user.json')
+yoongi = User()
 # yoongi.register('Yoongi', 'banghtansoenoedan2013')
 # yoongi.login('Yoongi', 'banghtansoenoedan2013')
 # yoongi.change_password('Yoongi', 'banghtansoenoedan2013', 'thewonderfulworld1')
