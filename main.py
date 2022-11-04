@@ -61,14 +61,19 @@ class ChangeUserNameMixin:
         if old_name in names: 
             user = [user for user in self.data if old_name == user['name']]
             ind = self.data.index(user[0])
-            if new_name in names: 
-                raise Exception('Пользователь с таким именем уже существует!')
-            else:
-                self.data[ind]['name'] = new_name
-                json.dump(self.data, open('user.json', 'w'))
-                print('Username changed successfully!')
+
+            def __corr_n(name):
+                while name in names: 
+                    print('Пользователь с таким именем уже существует!')
+                    name = input('Введите новое имя: ')
+                return name
+
+            self.data[ind]['name'] = __corr_n(new_name)
+            json.dump(self.data, open('user.json', 'w'))
+            print('Username changed successfully!')
         else:       
             raise Exception('Нет такого зарегистрированного юзера в БД!')
+
 
 
 class CheckOwnerMixin:
